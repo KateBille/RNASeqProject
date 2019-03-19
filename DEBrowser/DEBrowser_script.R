@@ -14,10 +14,10 @@ library(debrowser)
 
 if (!require("tidyverse")) install.packages("tidyverse"); library(tidyverse)
 
-genefilelist <- list.files(path="SARTools", pattern="*.genes.tsv", full.names=T)
+genefilelist <- list.files(path="SARTools.krb", pattern="*.genes.tsv", full.names=T)
 genefiles <- lapply(genefilelist, read_tsv)
-samplenames <- gsub("SARTools/S2_DRSC_CG8144_", "", genefilelist)
-samplenames <- gsub("SARTools/S2_DRSC_","", samplenames)
+samplenames <- gsub("SARTools.krb/S2_DRSC_CG8144_", "", genefilelist)
+samplenames <- gsub("SARTools.krb/S2_DRSC_","", samplenames)
 samplenames <- gsub(".genes.tsv", "", samplenames)
 samplenames <- gsub("-","_", samplenames) # DEBrowser doesn't like -
 samplenames

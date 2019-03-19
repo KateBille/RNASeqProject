@@ -1,5 +1,5 @@
 ################################################################################
-### R script to compare several conditions with the SARTools and edgeR packages
+### R script to compare several conditions with the SARTools and DESeq2 packages
 ### Hugo Varet
 ### March 20th, 2018
 ### designed to be executed with SARTools 1.6.6
@@ -29,12 +29,14 @@ idColumn = 1                                         # column with feature Ids (
 countColumn = 2                                      # column with counts  (2 for htseq-count, 7 for featurecounts, 5 for RSEM/Salmon, 4 for kallisto)
 rowSkip = 0                                          # rows to skip (not including header) 
 
+fitType <- "parametric"                              # mean-variance relationship: "parametric" (default), "local" or "mean"
+cooksCutoff <- TRUE                                  # TRUE/FALSE to perform the outliers detection (default is TRUE)
+independentFiltering <- TRUE                         # TRUE/FALSE to perform independent filtering (default is TRUE)
 alpha <- 0.05                                        # threshold of statistical significance
 pAdjustMethod <- "BH"                                # p-value adjustment method: "BH" (default) or "BY"
 
-cpmCutoff <- 1                                       # counts-per-million cut-off to filter low counts
-gene.selection <- "pairwise"                         # selection of the features in MDSPlot
-normalizationMethod <- "TMM"                         # normalization method: "TMM" (default), "RLE" (DESeq) or "upperquartile"
+typeTrans <- "VST"                                   # transformation for PCA/clustering: "VST" or "rlog"
+locfunc <- "median"                                  # "median" (default) or "shorth" to estimate the size factors
 
 colors <- c("dodgerblue","firebrick1",               # vector of colors of each biological condition on the plots
             "MediumVioletRed","SpringGreen")
@@ -55,15 +57,14 @@ if (!require("genefilter")) BiocManager::install("genefilter"); library(genefilt
 
 if (!require("devtools")) install.packages("devtools"); library(devtools)
 if (!require("SARTools")) install_github("KField-Bucknell/SARTools", build_vignettes=TRUE, force=TRUE); library(SARTools)
-
 if (forceCairoGraph) options(bitmapType="cairo")
 
 # checking parameters
-checkParameters.edgeR(projectName=projectName,author=author,targetFile=targetFile,
-                      rawDir=rawDir,featuresToRemove=featuresToRemove,varInt=varInt,
-                      condRef=condRef,batch=batch,alpha=alpha,pAdjustMethod=pAdjustMethod,
-                      cpmCutoff=cpmCutoff,gene.selection=gene.selection,
-                      normalizationMethod=normalizationMethod,colors=colors)
+checkParameters.DESeq2(projectName=projectName,author=author,targetFile=targetFile,
+                       rawDir=rawDir,featuresToRemove=featuresToRemove,varInt=varInt,
+                       condRef=condRef,batch=batch,fitType=fitType,cooksCutoff=cooksCutoff,
+                       independentFiltering=independentFiltering,alpha=alpha,pAdjustMethod=pAdjustMethod,
+                       typeTrans=typeTrans,locfunc=locfunc,colors=colors)
 
 # loading target file
 target <- loadTargetFile(targetFile=targetFile, varInt=varInt, condRef=condRef, batch=batch)
@@ -75,24 +76,27 @@ counts <- loadCountData(target=target, rawDir=rawDir, featuresToRemove=featuresT
 # description plots
 majSequences <- descriptionPlots(counts=counts, group=target[,varInt], col=colors)
 
-# edgeR analysis
-out.edgeR <- run.edgeR(counts=counts, target=target, varInt=varInt, condRef=condRef,
-                       batch=batch, cpmCutoff=cpmCutoff, normalizationMethod=normalizationMethod,
-                       pAdjustMethod=pAdjustMethod)
+# analysis with DESeq2
+out.DESeq2 <- run.DESeq2(counts=counts, target=target, varInt=varInt, batch=batch,
+                         locfunc=locfunc, fitType=fitType, pAdjustMethod=pAdjustMethod,
+                         cooksCutoff=cooksCutoff, independentFiltering=independentFiltering, alpha=alpha)
 
-# MDS + clustering
-exploreCounts(object=out.edgeR$dge, group=target[,varInt], gene.selection=gene.selection, col=colors)
+# PCA + clustering
+exploreCounts(object=out.DESeq2$dds, group=target[,varInt], typeTrans=typeTrans, col=colors)
 
-# summary of the analysis (boxplots, dispersions, export table, nDiffTotal, histograms, MA plot)
-summaryResults <- summarizeResults.edgeR(out.edgeR, group=target[,varInt], counts=counts, alpha=alpha, col=colors)
+# summary of the analysis (boxplots, dispersions, diag size factors, export table, nDiffTotal, histograms, MA plot)
+summaryResults <- summarizeResults.DESeq2(out.DESeq2, group=target[,varInt], col=colors,
+                                          independentFiltering=independentFiltering,
+                                          cooksCutoff=cooksCutoff, alpha=alpha)
 
 # save image of the R session
 save.image(file=paste0(projectName, ".RData"))
 
 # generating HTML report
-writeReport.edgeR(target=target, counts=counts, out.edgeR=out.edgeR, summaryResults=summaryResults,
-                  majSequences=majSequences, workDir=workDir, projectName=projectName, author=author,
-                  targetFile=targetFile, rawDir=rawDir, featuresToRemove=featuresToRemove, varInt=varInt,
-                  condRef=condRef, batch=batch, alpha=alpha, pAdjustMethod=pAdjustMethod, cpmCutoff=cpmCutoff,
-                  colors=colors, gene.selection=gene.selection, normalizationMethod=normalizationMethod)
+writeReport.DESeq2(target=target, counts=counts, out.DESeq2=out.DESeq2, summaryResults=summaryResults,
+                   majSequences=majSequences, workDir=workDir, projectName=projectName, author=author,
+                   targetFile=targetFile, rawDir=rawDir, featuresToRemove=featuresToRemove, varInt=varInt,
+                   condRef=condRef, batch=batch, fitType=fitType, cooksCutoff=cooksCutoff,
+                   independentFiltering=independentFiltering, alpha=alpha, pAdjustMethod=pAdjustMethod,
+                   typeTrans=typeTrans, locfunc=locfunc, colors=colors)
 
