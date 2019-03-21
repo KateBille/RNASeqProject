@@ -4,13 +4,43 @@ output: html_document
 ---
 
 
-```{Reading in the tsv files}
+```{r Reading in the tsv files}
 require(data.table)
 
-bowtie2_deseq2_trnscrpt_up<-as.data.frame(fread("bowtie2_deseq2_transcript_up.tsv"))
+debrowser_up<-as.data.frame(fread("bowtie2_deseq2_transcript_up.tsv"))
 
-bowtie2_deseq2_trnscrpt_down<-as.data.frame(fread("bowtie2_deseq2_transcript_down.tsv"))
+debrowser_down<-as.data.frame(fread("bowtie2_deseq2_transcript_down.tsv"))
 
 ```
 
+```{r Formatting dataframes to be combined with class}
+
+debrowser_up <- cbind(debrowser_up, direction="up", aligner="bowtie2", DEsoftware="deseq2")
+
+debrowser_down <- cbind(debrowser_down, direction="down", aligner="bowtie2", DEsoftware="deseq2")
+
+```
+
+
+```{r subsetting columns into new dataframe}
+library(tidyverse)
+
+debrowser_up %>%
+  select(aligner, DEsoftware, direction, ID) -> bowtie2_deseq2_up
+
+debrowser_down %>%
+  select(aligner, DEsoftware, direction, ID) -> bowtie2_deseq2_down
+
+bowtie2_deseq2_transcript <- rbind(bowtie2_deseq2_up, bowtie2_deseq2_down)
+```
+
+```{r writing dataframes into CSV}
+write.csv(bowtie2_deseq2_up, file = "bowtie2_deseq2_up.csv", row.names = FALSE)
+
+write.csv(bowtie2_deseq2_down, file = "bowtie2_deseq2_down.csv", row.names = FALSE)
+
+write.csv(bowtie2_deseq2_transcript, file = "bowtie2_deseq2_transcript.csv", row.names = FALSE)
+
+write.csv(test3, file = "test3.csv", row.names = FALSE)
+```
 
