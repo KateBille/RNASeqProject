@@ -23,7 +23,7 @@ debrowser_down <- cbind(debrowser_down, direction="down", aligner="bowtie2", DEs
 
 
 ```{r subsetting columns into new dataframe}
-library(tidyverse)
+if (!require("tidyverse")) install.packages("tidyverse"); library(tidyverse)
 
 debrowser_up %>%
   select(aligner, DEsoftware, direction, ID) -> bowtie2_deseq2_up
@@ -43,4 +43,14 @@ write.csv(bowtie2_deseq2_transcript, file = "bowtie2_deseq2_transcript.csv", row
 
 write.csv(test3, file = "test3.csv", row.names = FALSE)
 ```
+
+```{r dataframes into tsv}
+write_tsv(bowtie2_deseq2_down, path="bowtie2_deseq2_down.tsv")
+
+write_tsv(bowtie2_deseq2_up, path="bowtie2_deseq2_up.tsv")
+
+write_tsv(bowtie2_deseq2_transcript, path="bowtie2_deseq2_transcript.tsv")
+
+```
+
 
