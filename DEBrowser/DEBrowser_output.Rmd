@@ -1,0 +1,16 @@
+---
+title: "Formatting bowtie2_deseq2 transcript files"
+output: html_document
+---
+
+
+```{Reading in the tsv files}
+require(data.table)
+
+bowtie2_deseq2_trnscrpt_up<-as.data.frame(fread("bowtie2_deseq2_transcript_up.tsv"))
+
+bowtie2_deseq2_trnscrpt_down<-as.data.frame(fread("bowtie2_deseq2_transcript_down.tsv"))
+
+```
+
+
