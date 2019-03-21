@@ -33,7 +33,7 @@ colnames(genetable)[2:7] <- as.list(samplenames)
 head(genetable)
 write_tsv(genetable, path="genetable.tsv")
 
-transcriptfilelist <- list.files(path="SARTools", pattern="*.transcripts.tsv", full.names=T)
+transcriptfilelist <- list.files(path="SARTools.krb", pattern="*.transcripts.tsv", full.names=T)
 transcriptfiles <- lapply(transcriptfilelist, read_tsv)
 
 transcriptfiles %>%
@@ -46,7 +46,7 @@ str(transcripttable)
 write_tsv(transcripttable, path="transcripttable.tsv")
 
 ## Also need to reformat the target.txt file to match the sample names
-transcripts_target <- read_delim("SARTools/transcripts.target.txt", 
+transcripts_target <- read_delim("SARTools.krb/transcripts.target.txt", 
                                  "\t", escape_double = FALSE, trim_ws = TRUE)
 transcripts_target
 colnames(transcripttable) <- gsub("-","_", colnames(transcripttable))
